@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Una domanda per te ❤️</title>
     <style>
         body {
@@ -12,25 +12,30 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #ffe6e6; /* Un bel rosa pastello */
+            background-color: #ffe6e6;
             font-family: 'Comic Sans MS', 'Arial', sans-serif;
-            overflow: hidden; /* Evita le barre di scorrimento quando il bottone scappa */
+            overflow: hidden;
+            /* Evita la selezione accidentale del testo da telefono */
+            user-select: none; 
+            -webkit-user-select: none;
         }
 
         .container {
             text-align: center;
             background: white;
-            padding: 40px;
+            padding: 40px 20px; /* Padding ridotto per schermi piccoli */
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             position: relative;
             z-index: 10;
+            width: 90%; /* Si adatta alla larghezza del telefono */
+            max-width: 400px;
         }
 
         h1 {
             color: #ff4d4d;
             margin-bottom: 30px;
-            font-size: 2rem;
+            font-size: 1.8rem;
             transition: all 0.3s;
         }
 
@@ -38,18 +43,22 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             min-height: 60px;
         }
 
         button {
-            font-size: 20px;
-            padding: 10px 30px;
+            font-size: 18px;
+            padding: 12px 25px;
             border: none;
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
             transition: background-color 0.2s, transform 0.1s;
+            /* Rimuove l'effetto blu al tocco sui dispositivi mobili */
+            -webkit-tap-highlight-color: transparent; 
+            /* Evita lo zoom o lo scroll se si preme per sbaglio */
+            touch-action: none; 
         }
 
         #btn-yes {
@@ -58,23 +67,22 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        #btn-yes:hover {
-            background-color: #45a049;
-            transform: scale(1.05);
+        #btn-yes:active {
+            transform: scale(0.95); /* Effetto click più reattivo da telefono */
         }
 
         #btn-no {
             background-color: #f44336;
             color: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: top 0.2s, left 0.2s; /* Rende il movimento fluido */
+            transition: top 0.15s ease-out, left 0.15s ease-out; /* Reso più scattante */
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 id="question">Mi Vuoi Bene?</h1>
+        <h1 id="question">Vuoi essere la mia ragazza?</h1>
         <div class="buttons">
             <button id="btn-yes">Sì!</button>
             <button id="btn-no">No</button>
@@ -86,47 +94,52 @@
         const btnYes = document.getElementById('btn-yes');
         const question = document.getElementById('question');
 
-        // Frasi carine che cambiano ogni volta che si preme "Sì"
         const frasi = [
-            "Davvero?",
+            "Davvero? 😍",
             "Ma proprio sul serio?",
-            "Prometti che non stai scherzando?",
+            "Prometti che non stai scherzando? 🥺",
             "Ok, ultima conferma...",
             "Sapevo che avresti detto di sì! Ti amo! ❤️"
         ];
         
         let contatore = 0;
 
-        // Logica per far scappare il bottone "No"
-        btnNo.addEventListener('mouseover', () => {
-            // Calcola dimensioni casuali entro i limiti della finestra
+        // Funzione per muovere il bottone
+        function scappaBottone(evento) {
+            // Se è un evento touch, impedisci il comportamento di default (come lo scroll)
+            if (evento) {
+                evento.preventDefault();
+            }
+
+            // Calcola le coordinate tenendo conto delle dimensioni della finestra
             const x = Math.random() * (window.innerWidth - btnNo.offsetWidth - 20);
             const y = Math.random() * (window.innerHeight - btnNo.offsetHeight - 20);
 
-            // Applica il posizionamento fisso per farlo muovere liberamente
             btnNo.style.position = 'fixed';
             btnNo.style.left = `${Math.max(10, x)}px`;
             btnNo.style.top = `${Math.max(10, y)}px`;
-        });
+        }
 
-        // Logica per quando clicca "Sì"
+        // Aggiungiamo sia l'evento per il PC (mouseover) sia per il telefono (touchstart)
+        btnNo.addEventListener('mouseover', scappaBottone);
+        btnNo.addEventListener('touchstart', scappaBottone, { passive: false });
+        
+        // Un click extra di sicurezza nel caso riuscisse a premerlo
+        btnNo.addEventListener('click', scappaBottone);
+
         btnYes.addEventListener('click', () => {
             if (contatore < frasi.length) {
-                // Aggiorna il testo
                 question.innerText = frasi[contatore];
                 
-                // Ingrandisce un po' il pulsante del "Sì" ad ogni click (effetto psicologico divertente)
                 let stileAttuale = window.getComputedStyle(btnYes);
                 let dimensioneFont = parseFloat(stileAttuale.fontSize);
-                btnYes.style.fontSize = `${dimensioneFont + 4}px`;
-                btnYes.style.padding = `${dimensioneFont}px ${dimensioneFont + 20}px`;
+                btnYes.style.fontSize = `${dimensioneFont + 3}px`;
+                btnYes.style.padding = `${dimensioneFont + 2}px ${dimensioneFont + 15}px`;
                 
                 contatore++;
                 
-                // Quando arriva all'ultima frase, nascondi i bottoni
                 if (contatore === frasi.length) {
                     document.querySelector('.buttons').style.display = 'none';
-                    // Puoi aggiungere dei coriandoli o un'immagine qui sotto se vuoi!
                 }
             }
         });
