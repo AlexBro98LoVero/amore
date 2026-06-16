@@ -71,15 +71,17 @@
             background-color: #f44336;
             color: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            /* RIMOSSA LA TRANSIZIONE: Ora si sposta all'istante a livello di pixel, azzerando il lag */
-            position: relative; 
+            position: relative;
+            z-index: 999;
+            /* Forza il telefono a non usare animazioni di transizione */
+            transition: none !important; 
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 id="question">Mi vuoi bene?</h1>
+        <h1 id="question">Vuoi essere la mia ragazza?</h1>
         <div class="buttons">
             <button id="btn-yes">Sì!</button>
             <button id="btn-no">No</button>
@@ -100,29 +102,47 @@
         ];
         
         let contatore = 0;
+        let ultimoSpostamento = 0;
+        let originalX = null;
+        let originalY = null;
 
         function scappaBottone(evento) {
             if (evento) {
                 evento.preventDefault();
-                evento.stopPropagation(); // Blocca qualsiasi altra azione del browser
+                evento.stopPropagation();
             }
 
-            // Calcolo della posizione sullo schermo
-            const x = Math.random() * (window.innerWidth - btnNo.offsetWidth - 20);
-            const y = Math.random() * (window.innerHeight - btnNo.offsetHeight - 20);
+            // Soluzione al problema del telefono: blocca i click multipli contemporanei
+            const ora = Date.now();
+            if (ora - ultimoSpostamento < 200) return;
+            ultimoSpostamento = ora;
 
-            btnNo.style.position = 'fixed';
-            btnNo.style.left = `${Math.max(10, x)}px`;
-            btnNo.style.top = `${Math.max(10, y)}px`;
+            // Salva la posizione iniziale del bottone solo la prima volta
+            if (originalX === null || originalY === null) {
+                const rect = btnNo.getBoundingClientRect();
+                originalX = rect.left;
+                originalY = rect.top;
+            }
+
+            // Calcola i limiti dello schermo
+            const maxX = window.innerWidth - btnNo.offsetWidth - 20;
+            const maxY = window.innerHeight - btnNo.offsetHeight - 20;
+
+            // Genera una posizione casuale assoluta nello schermo
+            const targetX = Math.max(10, Math.random() * maxX);
+            const targetY = Math.max(10, Math.random() * maxY);
+
+            // Calcola lo spostamento necessario rispetto alla posizione di partenza
+            const translateX = targetX - originalX;
+            const translateY = targetY - originalY;
+
+            // Sposta il bottone usando la GPU del telefono (addio lag e blocchi)
+            btnNo.style.transform = `translate(${translateX}px, ${translateY}px)`;
         }
 
-        // Cattura l'avvicinamento del mouse (PC)
+        // Assegna gli eventi per PC e Telefono
         btnNo.addEventListener('mouseover', scappaBottone);
-        
-        // Intercetta il tocco istantaneo sul telefono (prima ancora del click)
         btnNo.addEventListener('touchstart', scappaBottone, { passive: false });
-        
-        // Di sicurezza: se tocca/clicca in qualsiasi modo, esegue SOLO la fuga
         btnNo.addEventListener('pointerdown', scappaBottone);
         btnNo.addEventListener('click', scappaBottone);
 
