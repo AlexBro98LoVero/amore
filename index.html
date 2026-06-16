@@ -15,7 +15,6 @@
             background-color: #ffe6e6;
             font-family: 'Comic Sans MS', 'Arial', sans-serif;
             overflow: hidden;
-            /* Evita la selezione accidentale del testo da telefono */
             user-select: none; 
             -webkit-user-select: none;
         }
@@ -23,12 +22,12 @@
         .container {
             text-align: center;
             background: white;
-            padding: 40px 20px; /* Padding ridotto per schermi piccoli */
+            padding: 40px 20px;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             position: relative;
             z-index: 10;
-            width: 90%; /* Si adatta alla larghezza del telefono */
+            width: 90%;
             max-width: 400px;
         }
 
@@ -36,7 +35,6 @@
             color: #ff4d4d;
             margin-bottom: 30px;
             font-size: 1.8rem;
-            transition: all 0.3s;
         }
 
         .buttons {
@@ -54,10 +52,7 @@
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.2s, transform 0.1s;
-            /* Rimuove l'effetto blu al tocco sui dispositivi mobili */
             -webkit-tap-highlight-color: transparent; 
-            /* Evita lo zoom o lo scroll se si preme per sbaglio */
             touch-action: none; 
         }
 
@@ -65,24 +60,26 @@
             background-color: #4CAF50;
             color: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
         }
 
         #btn-yes:active {
-            transform: scale(0.95); /* Effetto click più reattivo da telefono */
+            transform: scale(0.95);
         }
 
         #btn-no {
             background-color: #f44336;
             color: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: top 0.15s ease-out, left 0.15s ease-out; /* Reso più scattante */
+            /* RIMOSSA LA TRANSIZIONE: Ora si sposta all'istante a livello di pixel, azzerando il lag */
+            position: relative; 
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 id="question">Vuoi essere la mia ragazza?</h1>
+        <h1 id="question">Mi vuoi bene?</h1>
         <div class="buttons">
             <button id="btn-yes">Sì!</button>
             <button id="btn-no">No</button>
@@ -104,14 +101,13 @@
         
         let contatore = 0;
 
-        // Funzione per muovere il bottone
         function scappaBottone(evento) {
-            // Se è un evento touch, impedisci il comportamento di default (come lo scroll)
             if (evento) {
                 evento.preventDefault();
+                evento.stopPropagation(); // Blocca qualsiasi altra azione del browser
             }
 
-            // Calcola le coordinate tenendo conto delle dimensioni della finestra
+            // Calcolo della posizione sullo schermo
             const x = Math.random() * (window.innerWidth - btnNo.offsetWidth - 20);
             const y = Math.random() * (window.innerHeight - btnNo.offsetHeight - 20);
 
@@ -120,11 +116,14 @@
             btnNo.style.top = `${Math.max(10, y)}px`;
         }
 
-        // Aggiungiamo sia l'evento per il PC (mouseover) sia per il telefono (touchstart)
+        // Cattura l'avvicinamento del mouse (PC)
         btnNo.addEventListener('mouseover', scappaBottone);
+        
+        // Intercetta il tocco istantaneo sul telefono (prima ancora del click)
         btnNo.addEventListener('touchstart', scappaBottone, { passive: false });
         
-        // Un click extra di sicurezza nel caso riuscisse a premerlo
+        // Di sicurezza: se tocca/clicca in qualsiasi modo, esegue SOLO la fuga
+        btnNo.addEventListener('pointerdown', scappaBottone);
         btnNo.addEventListener('click', scappaBottone);
 
         btnYes.addEventListener('click', () => {
